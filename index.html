@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b7a87">
+<title>Enjoygram</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#edf0f7; --surface:#ffffff; --fg:#141a2c; --muted:#5b6480; --line:#dde1ec;
+  --accent:#0b7a87; --accent-fg:#ffffff; --ring1:#f2a33a; --ring2:#e2556b; --heart:#e2425c;
+  --font-display:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#0d1120; --surface:#161b2e; --fg:#eceff8; --muted:#9aa3bf; --line:#272d45;
+    --accent:#3cc4d1; --accent-fg:#06222a; --ring1:#f5b04e; --ring2:#ff6b82; --heart:#ff5d7a;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--font-body);padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.in{max-width:520px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .in{display:flex;align-items:center;justify-content:space-between;height:54px}
+.brand{display:flex;align-items:center;gap:10px;font:700 24px/1 var(--font-display);letter-spacing:-.02em}
+.mark{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:24px;height:24px}
+.mark i{border-radius:5px;background:var(--accent)}
+.mark i:nth-child(2){background:var(--ring1)}
+.mark i:nth-child(3){background:var(--ring2)}
+.mark i:nth-child(4){background:var(--fg);opacity:.85}
+.iconbtn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px}
+.iconbtn:hover{background:var(--bg)}
+
+main{max-width:520px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+
+.av{width:var(--s,40px);height:var(--s,40px);border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;font:700 calc(var(--s,40px)*.4)/1 var(--font-display);background:linear-gradient(135deg,hsl(var(--h) 70% 52%),hsl(calc(var(--h) + 45) 75% 40%))}
+
+.post{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:16px}
+.phead{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.phead .who{min-width:0;flex:1}
+.phead b{display:block;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phead small{color:var(--muted)}
+.media{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--line);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.media img{width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none}
+.burst{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#fff;animation:pop .7s ease-out forwards}
+.burst svg{width:96px;height:96px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.4))}
+@keyframes pop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.15);opacity:1}60%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}
+.acts{display:flex;align-items:center;padding:6px 8px 0}
+.acts .sp{flex:1}
+.act{width:44px;height:44px;display:grid;place-items:center;border-radius:12px}
+.act:hover{background:var(--bg)}
+.act.on.like{color:var(--heart)}
+.act.on.save{color:var(--accent)}
+.pbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:6px}
+.likes{font-weight:700;font-variant-numeric:tabular-nums}
+.cap b,.cmt b{font-weight:700;margin-right:6px}
+.more{color:var(--muted);text-align:left;padding:2px 0;min-height:32px}
+.cmt{overflow-wrap:anywhere}
+.cform{display:flex;gap:8px;margin-top:6px;border-top:1px solid var(--line);padding-top:10px}
+.cform input{flex:1;min-width:0;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:9px 14px}
+.cform button{font-weight:700;color:var(--accent);padding:0 6px;min-height:44px}
+.cform button:disabled{opacity:.4;cursor:default}
+
+.fbtn{min-height:36px;padding:0 14px;border-radius:999px;font-weight:700;font-size:13px;background:var(--accent);color:var(--accent-fg);flex:none}
+.fbtn.on{background:var(--bg);color:var(--fg);border:1px solid var(--line)}
+.fbtn.quiet{background:none;color:var(--muted);border:1px solid var(--line)}
+.fbtn.danger{background:var(--heart);color:#fff}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav .in{display:flex;justify-content:space-around;align-items:center;height:60px}
+.nav a,.nav button{flex:1;height:60px;display:grid;place-items:center;color:var(--muted)}
+.nav [aria-current="page"]{color:var(--fg)}
+.nav .addbtn span{width:46px;height:34px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:var(--accent-fg)}
+
+.sec-title{font:700 20px/1.2 var(--font-display);letter-spacing:-.01em;margin:4px 0 12px}
+.search{display:block;width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:14px;overflow:hidden}
+.tile{position:relative;aspect-ratio:1/1;background:var(--line);display:block;width:100%}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile em{position:absolute;left:6px;bottom:6px;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:rgba(10,14,28,.55);padding:2px 8px;border-radius:999px;font-variant-numeric:tabular-nums}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty b{color:var(--fg);font:700 18px/1.2 var(--font-display)}
+
+.prof{display:flex;align-items:center;gap:18px;margin-bottom:14px}
+.stats{display:flex;gap:20px;flex:1;justify-content:space-around;text-align:center}
+.stats b{display:block;font:700 20px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.stats small{color:var(--muted)}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin:14px 0 12px}
+.tabs button{flex:1;min-height:44px;color:var(--muted);font-weight:700;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+.bio{margin-top:4px;overflow-wrap:anywhere}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:12px;font-weight:700;background:var(--bg);border:1px solid var(--line);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(8,12,26,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet-body{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow-y:auto;border-radius:20px 20px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.sheet-body .post{margin:0}
+.shead{display:flex;align-items:center;justify-content:space-between}
+.shead b{font:700 18px/1 var(--font-display)}
+.preview{aspect-ratio:1/1;max-width:100%;border-radius:16px;background:var(--surface);border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);text-align:center;overflow:hidden;padding:12px}
+.preview img{width:100%;height:100%;object-fit:cover;display:block}
+.field{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;resize:vertical;min-height:76px}
+.lbl{font-weight:700;font-size:13px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+
+.auth{min-height:100vh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.auth-card{width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px}
+.auth-card h1{font:700 28px/1.15 var(--font-display);letter-spacing:-.02em;margin:8px 0 0;text-wrap:balance}
+.auth-card p{margin:0;color:var(--muted)}
+.auth .field{min-height:0;font-size:18px;letter-spacing:.02em}
+.err{color:var(--heart);font-weight:700;min-height:1.4em}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion: reduce){.burst{animation-duration:.01s}}
+</style>
+</head>
+<body>
+<header class="top" id="topbar" hidden><div class="in">
+  <a class="brand" href="#home" aria-label="Enjoygram home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Enjoygram</a>
+  <button class="iconbtn" data-action="add" aria-label="New post" id="topAdd"></button>
+</div></header>
+<div id="root"></div>
+<nav class="nav" id="botnav" aria-label="Main" hidden><div class="in">
+  <a href="#home" id="n-home" aria-label="Home"></a>
+  <a href="#explore" id="n-explore" aria-label="Explore"></a>
+  <button class="addbtn" data-action="add" aria-label="New post"><span id="n-add"></span></button>
+  <a href="#profile" id="n-profile" aria-label="My profile"></a>
+</div></nav>
+<div id="layer"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth,RecaptchaVerifier,signInWithPhoneNumber,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {getFirestore,doc,getDoc,setDoc,addDoc,deleteDoc,updateDoc,collection,query,orderBy,limit,where,getDocs,onSnapshot,serverTimestamp,arrayUnion,arrayRemove,writeBatch} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import {firebaseConfig} from './firebase-config.js';
+
+const root=document.getElementById('root'),layer=document.getElementById('layer');
+const configured=!Object.values(firebaseConfig).some(v=>String(v).startsWith('PASTE'));
+let auth,db;
+if(configured){const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);auth.useDeviceLanguage()}
+
+/* ---------- helpers ---------- */
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const svg=(p,f,w)=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="${w||1.8}" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${p}</svg>`;
+const P={
+  heart:'<path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/>',
+  chat:'<path d="M4 5.5h16v10.5H10.5L6 19.5V16H4z"/>',
+  save:'<path d="M6.5 4h11v16.5L12 16.5l-5.5 4z"/>',
+  home:'<path d="M4 11l8-6.5 8 6.5v8.5h-5v-5.5H9v5.5H4z"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  user:'<circle cx="12" cy="8.5" r="3.7"/><path d="M5 20c1-4 4-5.6 7-5.6s6 1.6 7 5.6"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>'
+};
+const FILTERS=[['Normal',''],['Warm','sepia(.35) saturate(1.3) hue-rotate(-10deg)'],['Cool','saturate(1.1) hue-rotate(15deg) brightness(1.05)'],['Mono','grayscale(1) contrast(1.1)'],['Vivid','saturate(1.7) contrast(1.08)'],['Fade','contrast(.85) brightness(1.1) saturate(.8)']];
+const hue=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))%360;return h};
+const av=(handle,id,size)=>`<span class="av" style="--h:${hue(id)};--s:${size}px">${esc((handle||'?').charAt(0).toUpperCase())}</span>`;
+const ms=t=>t&&t.toMillis?t.toMillis():Date.now();
+const rel=t=>{const m=Math.max(1,Math.round((Date.now()-ms(t))/60000));if(m<60)return m+'m';const h=Math.round(m/60);return h<24?h+'h':Math.round(h/24)+'d'};
+const fstyle=p=>p.filter?` style="filter:${esc(p.filter)}"`:'';
+let tt;
+const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{t.hidden=true},2800)};
+
+document.getElementById('topAdd').innerHTML=svg(P.plus,false,2);
+document.getElementById('n-home').innerHTML=svg(P.home);
+document.getElementById('n-explore').innerHTML=svg(P.search);
+document.getElementById('n-add').innerHTML=svg(P.plus,false,2.4);
+document.getElementById('n-profile').innerHTML=svg(P.user);
+
+/* ---------- state ---------- */
+let uid=null,me=null,posts=[],following=new Set(),saved=new Set(),savedPosts=[],unsubs=[];
+let feedTab='all',tab='posts',prof=null,profLoading=null,query_='',openId=null;
+let authStep=1,phoneVal='+91 ',authErr='',authBusy=false,confirmation=null,verifier=null,setupErr='';
+const commentsCache={},expanded={},confirmDel={},lastTap={};
+let draft={src:null,filter:''},dirty=false;
+
+const view=()=>{const h=(location.hash||'#home').slice(1);return h==='explore'||h==='profile'||h.startsWith('user-')?h:'home'};
+const findPost=id=>posts.find(p=>p.id===id)||(prof&&prof.posts&&prof.posts.find(p=>p.id===id))||savedPosts.find(p=>p.id===id);
+
+/* ---------- views ---------- */
+function postHTML(p){
+  const liked=p.likes.includes(uid),own=p.uid===uid,c=commentsCache[p.id];
+  let act='';
+  if(own)act=confirmDel[p.id]?`<button class="fbtn danger" data-action="delyes" data-id="${p.id}">Delete post</button><button class="fbtn quiet" data-action="delno" data-id="${p.id}">Keep</button>`:`<button class="fbtn quiet" data-action="del" data-id="${p.id}">Delete</button>`;
+  else act=`<button class="fbtn${following.has(p.uid)?' on':''}" data-action="follow" data-u="${p.uid}" aria-pressed="${following.has(p.uid)}">${following.has(p.uid)?'Following':'Follow'}</button>`;
+  let h=`<article class="post" data-post="${p.id}"><div class="phead">${av(p.handle,p.uid,38)}<div class="who"><a href="#${own?'profile':'user-'+p.uid}"><b>${esc(p.handle)}</b></a><small>${rel(p.createdAt)} ago</small></div>${act}</div>`;
+  h+=`<div class="media" data-media="${p.id}"><img src="${p.image}"${fstyle(p)} alt="Photo by ${esc(p.handle)}" draggable="false"></div>`;
+  h+=`<div class="acts"><button class="act like${liked?' on':''}" data-action="like" data-id="${p.id}" aria-pressed="${liked}" aria-label="Like">${svg(P.heart,liked)}</button><button class="act" data-action="focuscmt" data-id="${p.id}" aria-label="Comment">${svg(P.chat)}</button><span class="sp"></span><button class="act save${saved.has(p.id)?' on':''}" data-action="save" data-id="${p.id}" aria-pressed="${saved.has(p.id)}" aria-label="Save">${svg(P.save,saved.has(p.id))}</button></div>`;
+  h+=`<div class="pbody"><div class="likes">${p.likes.length.toLocaleString('en-IN')} likes</div>`;
+  if(p.caption)h+=`<div class="cap"><b>${esc(p.handle)}</b>${esc(p.caption)}</div>`;
+  if(c)c.forEach(m=>{h+=`<div class="cmt"><b>${esc(m.handle)}</b>${esc(m.text)}</div>`});
+  else h+=`<button class="more" data-action="loadcmt" data-id="${p.id}">View comments</button>`;
+  h+=`<form class="cform" data-id="${p.id}" autocomplete="off"><input type="text" id="c-${p.id}" maxlength="200" placeholder="Add a comment" aria-label="Add a comment"><button type="submit" disabled>Post</button></form></div></article>`;
+  return h;
+}
+function updatePost(id){
+  const p=findPost(id);if(!p)return;
+  document.querySelectorAll(`[data-post="${id}"]`).forEach(el=>{const t=document.createElement('div');t.innerHTML=postHTML(p);el.replaceWith(t.firstChild)});
+}
+function tilesHTML(list){
+  if(!list.length)return '<div class="empty"><b>No posts</b>Nothing to show here yet.</div>';
+  return '<div class="grid">'+list.map(p=>`<button class="tile" data-action="openpost" data-id="${p.id}" aria-label="Open post by ${esc(p.handle)}"><img src="${p.image}"${fstyle(p)} alt=""><em>${p.likes.length}</em></button>`).join('')+'</div>';
+}
+function homeHTML(){
+  let h=`<div class="tabs" role="tablist"><button role="tab" data-action="feed" data-t="all" aria-selected="${feedTab==='all'}">For you</button><button role="tab" data-action="feed" data-t="following" aria-selected="${feedTab==='following'}">Following</button></div>`;
+  const list=feedTab==='following'?posts.filter(p=>p.uid===uid||following.has(p.uid)):posts;
+  if(!list.length)return h+`<div class="empty"><b>${feedTab==='following'?'No posts from people you follow':'No posts yet'}</b>${feedTab==='following'?'Follow people from the For you tab.':'Be the first to share a photo.'}<button class="btn primary" data-action="add">New post</button></div>`;
+  return h+list.map(postHTML).join('');
+}
+function exploreHTML(){
+  const q=query_.trim().toLowerCase();
+  const list=posts.filter(p=>!q||p.handle.includes(q)||(p.caption||'').toLowerCase().includes(q));
+  return `<h1 class="sec-title">Explore</h1><input class="search" id="q" type="search" value="${esc(query_)}" placeholder="Search captions or usernames" aria-label="Search"><div id="tiles">${tilesHTML(list)}</div>`;
+}
+function profileHTML(target){
+  if(!prof||prof.uid!==target)return '<div class="empty">Loading profile…</div>';
+  if(prof.missing)return '<div class="empty"><b>Profile not found</b>This account does not exist.</div>';
+  const u=prof.user,own=target===uid,got=prof.posts.reduce((a,p)=>a+p.likes.length,0);
+  let h=`<div class="prof">${av(u.handle,target,84)}<div class="stats"><div><b>${prof.posts.length}</b><small>Posts</small></div><div><b>${got}</b><small>Likes</small></div>${own?`<div><b>${following.size}</b><small>Following</small></div>`:''}</div></div>`;
+  h+=`<div><b>${esc(u.name)}</b><div style="color:var(--muted)">@${esc(u.handle)}</div>${u.bio?`<div class="bio">${esc(u.bio)}</div>`:''}</div>`;
+  h+='<div class="row" style="margin-top:12px">';
+  if(own)h+='<button class="btn" data-action="editprofile">Edit profile</button><button class="btn" data-action="logout">Log out</button>';
+  else h+=`<button class="fbtn${following.has(target)?' on':''}" data-action="follow" data-u="${target}" aria-pressed="${following.has(target)}" style="min-height:44px;padding:0 22px">${following.has(target)?'Following':'Follow'}</button>`;
+  h+='</div>';
+  if(own){
+    h+=`<div class="tabs" role="tablist"><button role="tab" data-action="tab" data-t="posts" aria-selected="${tab==='posts'}">Posts</button><button role="tab" data-action="tab" data-t="saved" aria-selected="${tab==='saved'}">Saved</button></div>`;
+    h+=tab==='posts'?(prof.posts.length?tilesHTML(prof.posts):'<div class="empty"><b>No posts yet</b>Share your first photo.<button class="btn primary" data-action="add">New post</button></div>'):(savedPosts.length?tilesHTML(savedPosts):'<div class="empty"><b>Nothing saved</b>Tap the bookmark on any post.</div>');
+  }else h+='<div s

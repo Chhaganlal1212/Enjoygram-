@@ -243,4 +243,277 @@ function profileHTML(target){
   if(own){
     h+=`<div class="tabs" role="tablist"><button role="tab" data-action="tab" data-t="posts" aria-selected="${tab==='posts'}">Posts</button><button role="tab" data-action="tab" data-t="saved" aria-selected="${tab==='saved'}">Saved</button></div>`;
     h+=tab==='posts'?(prof.posts.length?tilesHTML(prof.posts):'<div class="empty"><b>No posts yet</b>Share your first photo.<button class="btn primary" data-action="add">New post</button></div>'):(savedPosts.length?tilesHTML(savedPosts):'<div class="empty"><b>Nothing saved</b>Tap the bookmark on any post.</div>');
-  }else h+='<div s
+  }else h+='<div style="height:12px"></div>'+tilesHTML(prof.posts);
+  return h;
+}
+function authHTML(){
+  let h='<div class="auth"><div class="auth-card"><div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Enjoygram</div>';
+  if(authStep===1){
+    h+=`<h1>Log in with your mobile number</h1><p>We will send a 6-digit OTP by SMS. One mobile number gets one account.</p><label class="lbl" for="phone">Mobile number</label><input class="field" id="phone" type="tel" inputmode="tel" autocomplete="tel" value="${esc(phoneVal)}" placeholder="+91 98765 43210"><div class="err" role="alert">${esc(authErr)}</div><button class="btn primary" id="send-otp" data-action="sendotp"${authBusy?' disabled':''}>${authBusy?'Sending…':'Send OTP'}</button>`;
+  }else{
+    h+=`<h1>Enter the OTP</h1><p>We sent a code to ${esc(phoneVal)}.</p><label class="lbl" for="otp">6-digit OTP</label><input class="field" id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"><div class="err" role="alert">${esc(authErr)}</div><button class="btn primary" data-action="verify"${authBusy?' disabled':''}>${authBusy?'Checking…':'Verify and continue'}</button><button class="btn" data-action="changenum">Change number</button>`;
+  }
+  return h+'</div></div>';
+}
+function setupHTML(){
+  return `<div class="auth"><div class="auth-card"><div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Enjoygram</div><h1>Create your profile</h1><p>Your username is unique and cannot be changed later.</p><label class="lbl" for="sname">Name</label><input class="field" id="sname" maxlength="30" autocomplete="name"><label class="lbl" for="shandle">Username</label><input class="field" id="shandle" maxlength="20" autocapitalize="none" autocomplete="off" placeholder="letters, numbers, . and _"><div class="err" role="alert">${esc(setupErr)}</div><button class="btn primary" data-action="createprofile">Create account</button><button class="btn" data-action="logout">Log out</button></div></div>`;
+}
+function setupMissingHTML(){
+  return '<div class="auth"><div class="auth-card"><h1>Add your Firebase keys</h1><p>Open <b>public/firebase-config.js</b> and paste the config from your Firebase project. The README has the steps.</p></div></div>';
+}
+
+/* ---------- render ---------- */
+function chrome(on){document.getElementById('topbar').hidden=!on;document.getElementById('botnav').hidden=!on;document.body.style.paddingBottom=on?'':'0'}
+function render(){
+  if(!configured){chrome(false);root.innerHTML=setupMissingHTML();return}
+  if(authState==='out'){chrome(false);root.innerHTML=authHTML();return}
+  if(authState==='setup'){chrome(false);root.innerHTML=setupHTML();return}
+  if(authState!=='in'){chrome(false);root.innerHTML='<div class="auth"><p>Loading…</p></div>';return}
+  chrome(true);
+  const v=view();let body;
+  if(v==='home')body=homeHTML();
+  else if(v==='explore')body=exploreHTML();
+  else{const target=v==='profile'?uid:v.slice(5);
+    if((!prof||prof.uid!==target)&&profLoading!==target)loadProfile(target);
+    body=profileHTML(target)}
+  root.innerHTML='<main>'+body+'</main>';
+  const cur=v.startsWith('user-')?'':v;
+  ['home','explore','profile'].forEach(k=>{const a=document.getElementById('n-'+k);if(k===cur)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  refreshModal();
+}
+function softRender(){
+  const a=document.activeElement;
+  if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&root.contains(a)&&authState==='in'){dirty=true;return}
+  render();
+}
+document.addEventListener('focusout',()=>{if(dirty){dirty=false;setTimeout(render,0)}});
+
+/* ---------- auth ---------- */
+let authState='loading';
+if(configured){
+  onAuthStateChanged(auth,async user=>{
+    unsubs.forEach(u=>u());unsubs=[];
+    if(!user){uid=null;me=null;posts=[];prof=null;authState='out';authStep=1;render();return}
+    uid=user.uid;
+    try{
+      const s=await getDoc(doc(db,'users',uid));
+      if(!s.exists()){authState='setup';render();return}
+      me=s.data();authState='in';startListeners();render();
+    }catch(e){authState='out';authErr='Could not load your account: '+(e.code||e.message);render()}
+  });
+}
+function startListeners(){
+  unsubs.push(onSnapshot(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(40)),s=>{posts=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));softRender()},e=>toast('Could not load posts: '+(e.code||''))));
+  unsubs.push(onSnapshot(collection(db,'users',uid,'following'),s=>{following=new Set(s.docs.map(d=>d.id));softRender()}));
+  unsubs.push(onSnapshot(collection(db,'users',uid,'saved'),s=>{saved=new Set(s.docs.map(d=>d.id));softRender()}));
+}
+function normPhone(v){
+  let s=String(v).replace(/[\s-]/g,'');
+  if(/^\d{10}$/.test(s))s='+91'+s;
+  return /^\+\d{10,15}$/.test(s)?s:null;
+}
+async function sendOtp(){
+  const el=document.getElementById('phone');phoneVal=el?el.value:phoneVal;
+  const num=normPhone(phoneVal);
+  if(!num){authErr='Enter a valid mobile number, for example +91 98765 43210.';render();return}
+  authBusy=true;authErr='';render();
+  try{
+    if(verifier){try{verifier.clear()}catch(e){}}
+    verifier=new RecaptchaVerifier(auth,'send-otp',{size:'invisible'});
+    confirmation=await signInWithPhoneNumber(auth,num,verifier);
+    phoneVal=num;authStep=2;authBusy=false;authErr='';render();
+  }catch(e){
+    authBusy=false;
+    authErr=e.code==='auth/invalid-phone-number'?'That number does not look right.':e.code==='auth/too-many-requests'?'Too many attempts. Try again later.':'Could not send the OTP ('+(e.code||'error')+').';
+    try{verifier.clear()}catch(x){} verifier=null;render();
+  }
+}
+async function verifyOtp(){
+  const code=(document.getElementById('otp').value||'').trim();
+  if(!/^\d{6}$/.test(code)){authErr='Enter the 6-digit code.';render();return}
+  authBusy=true;authErr='';render();
+  try{await confirmation.confirm(code);authBusy=false}
+  catch(e){authBusy=false;authErr=e.code==='auth/invalid-verification-code'?'That OTP is wrong.':e.code==='auth/code-expired'?'That OTP expired. Go back and request a new one.':'Could not verify ('+(e.code||'error')+').';render()}
+}
+async function createProfile(){
+  const name=document.getElementById('sname').value.trim().slice(0,30);
+  const handle=document.getElementById('shandle').value.trim().toLowerCase();
+  if(!name){setupErr='Enter your name.';render();return}
+  if(!/^[a-z0-9._]{3,20}$/.test(handle)){setupErr='Username: 3 to 20 letters, numbers, dots or underscores.';render();return}
+  try{
+    const b=writeBatch(db);
+    b.set(doc(db,'handles',handle),{uid});
+    b.set(doc(db,'users',uid),{name,handle,bio:'',createdAt:serverTimestamp()});
+    await b.commit();
+    me={name,handle,bio:''};authState='in';setupErr='';startListeners();location.hash='#home';render();
+  }catch(e){setupErr='That username is taken. Try another one.';render()}
+}
+  
+/* ---------- profile loading ---------- */
+async function loadProfile(target){
+  profLoading=target;
+  try{
+    const us=await getDoc(doc(db,'users',target));
+    if(!us.exists()){prof={uid:target,missing:true}}
+    else{
+      const ps=await getDocs(query(collection(db,'posts'),where('uid','==',target)));
+      const list=ps.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})})).sort((a,b)=>ms(b.createdAt)-ms(a.createdAt));
+      prof={uid:target,user:us.data(),posts:list};
+    }
+  }catch(e){prof={uid:target,missing:true}}
+  profLoading=null;render();
+}
+async function loadSaved(){
+  const docs=await Promise.all([...saved].map(id=>getDoc(doc(db,'posts',id))));
+  savedPosts=docs.filter(d=>d.exists()).map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));
+  render();
+}
+
+/* ---------- sheets ---------- */
+function closeLayer(){layer.innerHTML='';openId=null;document.body.style.overflow=''}
+function refreshModal(){
+  if(!openId)return;
+  const p=findPost(openId);if(!p){closeLayer();return}
+  const b=layer.querySelector('.sheet-body');if(!b)return;
+  const old=b.querySelector('.post');if(old){const t=document.createElement('div');t.innerHTML=postHTML(p);old.replaceWith(t.firstChild)}
+}
+function openPostSheet(id){
+  openId=id;
+  layer.innerHTML=`<div class="sheet" data-sheet><div class="sheet-body" role="dialog" aria-modal="true" aria-label="Post"><div class="shead"><b>Post</b><button class="iconbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div>${postHTML(findPost(id))}</div></div>`;
+  document.body.style.overflow='hidden';
+}
+function openCompose(){
+  draft={src:null,filter:''};
+  layer.innerHTML=`<div class="sheet" data-sheet><div class="sheet-body" role="dialog" aria-modal="true" aria-label="New post"><div class="shead"><b>New post</b><button class="iconbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div><div class="preview" id="pv">Choose a photo from your phone.</div><div class="chips" id="flt" role="group" aria-label="Filters"></div><div class="row"><label class="btn" for="file" tabindex="0">Choose photo</label><input id="file" type="file" accept="image/*" hidden></div><label class="lbl" for="cap">Caption</label><textarea class="field" id="cap" maxlength="300" placeholder="Write a caption"></textarea><button class="btn primary" id="shareBtn" data-action="share" disabled>Share</button></div></div>`;
+  document.body.style.overflow='hidden';
+}
+function updateCompose(){
+  const pv=document.getElementById('pv'),b=document.getElementById('shareBtn');if(!pv)return;
+  pv.innerHTML=draft.src?`<img src="${draft.src}" style="filter:${draft.filter}" alt="Preview of your post">`:'Choose a photo from your phone.';
+  b.disabled=!draft.src;
+  document.getElementById('flt').innerHTML=draft.src?FILTERS.map((f,i)=>`<button class="chip" data-action="filter" data-i="${i}" aria-pressed="${draft.filter===f[1]}">${f[0]}</button>`).join(''):'';
+}
+function onFile(f){
+  if(!f)return;
+  const url=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{
+    const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    let q=.78,d=c.toDataURL('image/jpeg',q);
+    while(d.length>700000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}
+    URL.revokeObjectURL(url);
+    if(d.length>850000){toast('That photo is too large. Pick a smaller one.');return}
+    draft.src=d;updateCompose();
+  };
+  im.onerror=()=>toast('Could not read that image.');
+  im.src=url;
+}
+function openEdit(){
+  layer.innerHTML=`<div class="sheet" data-sheet><div class="sheet-body" role="dialog" aria-modal="true" aria-label="Edit profile"><div class="shead"><b>Edit profile</b><button class="iconbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div><label class="lbl" for="ename">Name</label><input class="search" style="margin:0" id="ename" maxlength="30" value="${esc(me.name)}"><label class="lbl" for="ebio">Bio</label><textarea class="field" id="ebio" maxlength="150">${esc(me.bio)}</textarea><button class="btn primary" data-action="saveprofile">Save</button></div></div>`;
+  document.body.style.overflow='hidden';
+}
+
+/* ---------- actions ---------- */
+async function toggleLike(id,force){
+  const p=findPost(id);if(!p)return;
+  const liked=p.likes.includes(uid);
+  if(force&&liked)return;
+  p.likes=liked?p.likes.filter(x=>x!==uid):p.likes.concat(uid);
+  updatePost(id);
+  try{await updateDoc(doc(db,'posts',id),{likes:liked?arrayRemove(uid):arrayUnion(uid)})}
+  catch(e){p.likes=liked?p.likes.concat(uid):p.likes.filter(x=>x!==uid);updatePost(id);toast('Could not update the like.')}
+}
+async function loadComments(id){
+  const s=await getDocs(query(collection(db,'posts',id,'comments'),orderBy('createdAt','asc'),limit(50)));
+  commentsCache[id]=s.docs.map(d=>d.data({serverTimestamps:'estimate'}));
+  updatePost(id);
+}
+document.addEventListener('click',async e=>{
+  if(e.target.matches('[data-sheet]')){closeLayer();return}
+  const t=e.target.closest('[data-action]');if(!t)return;
+  const a=t.dataset.action,id=t.dataset.id;
+  try{
+    if(a==='like')toggleLike(id);
+    else if(a==='save'){
+      const r=doc(db,'users',uid,'saved',id);
+      if(saved.has(id)){await deleteDoc(r);savedPosts=savedPosts.filter(p=>p.id!==id);toast('Removed from saved')}
+      else{await setDoc(r,{createdAt:serverTimestamp()});toast('Saved')}
+    }
+    else if(a==='loadcmt')loadComments(id);
+    else if(a==='focuscmt'){const i=document.getElementById('c-'+id);if(i)i.focus()}
+    else if(a==='follow'){
+      const u=t.dataset.u,r=doc(db,'users',uid,'following',u);
+      if(following.has(u)){await deleteDoc(r);toast('Unfollowed')}else{await setDoc(r,{createdAt:serverTimestamp()});toast('Following')}
+    }
+    else if(a==='feed'){feedTab=t.dataset.t;render()}
+    else if(a==='tab'){tab=t.dataset.t;if(tab==='saved')loadSaved();else render()}
+    else if(a==='add')openCompose();
+    else if(a==='close')closeLayer();
+    else if(a==='filter'){draft.filter=FILTERS[parseInt(t.dataset.i,10)][1];updateCompose()}
+    else if(a==='openpost')openPostSheet(id);
+    else if(a==='del'){confirmDel[id]=true;updatePost(id)}
+    else if(a==='delno'){delete confirmDel[id];updatePost(id)}
+    else if(a==='delyes'){
+      await deleteDoc(doc(db,'posts',id));delete confirmDel[id];
+      posts=posts.filter(p=>p.id!==id);if(prof&&prof.posts)prof.posts=prof.posts.filter(p=>p.id!==id);
+      savedPosts=savedPosts.filter(p=>p.id!==id);closeLayer();render();toast('Post deleted');
+    }
+    else if(a==='share'){
+      if(!draft.src)return;
+      t.disabled=true;
+      await addDoc(collection(db,'posts'),{uid,handle:me.handle,caption:document.getElementById('cap').value.trim().slice(0,300),image:draft.src,filter:draft.filter,likes:[],createdAt:serverTimestamp()});
+      closeLayer();prof=null;
+      if(view()!=='home')location.hash='#home';else render();
+      window.scrollTo(0,0);toast('Posted');
+    }
+    else if(a==='editprofile')openEdit();
+    else if(a==='saveprofile'){
+      const name=document.getElementById('ename').value.trim().slice(0,30)||me.name,bio=document.getElementById('ebio').value.trim().slice(0,150);
+      await updateDoc(doc(db,'users',uid),{name,bio});
+      me={...me,name,bio};prof=null;closeLayer();render();toast('Profile updated');
+    }
+    else if(a==='logout'){closeLayer();await signOut(auth)}
+    else if(a==='sendotp')sendOtp();
+    else if(a==='verify')verifyOtp();
+    else if(a==='changenum'){authStep=1;authErr='';render()}
+    else if(a==='createprofile')createProfile();
+  }catch(err){toast('Something went wrong ('+(err.code||'error')+').');const b=document.getElementById('shareBtn');if(b)b.disabled=false}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&layer.firstChild)closeLayer();
+  if(e.key==='Enter'&&e.target.matches('label[for="file"]'))document.getElementById('file').click();
+  if(e.key==='Enter'&&e.target.id==='phone')sendOtp();
+  if(e.key==='Enter'&&e.target.id==='otp')verifyOtp();
+});
+document.addEventListener('change',e=>{if(e.target.id==='file')onFile(e.target.files[0])});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='q'){
+    query_=t.value;const q=query_.trim().toLowerCase();
+    document.getElementById('tiles').innerHTML=tilesHTML(posts.filter(p=>!q||p.handle.includes(q)||(p.caption||'').toLowerCase().includes(q)));
+  }else if(t.closest&&t.closest('.cform')){t.closest('.cform').querySelector('button').disabled=!t.value.trim()}
+});
+document.addEventListener('submit',async e=>{
+  const f=e.target.closest('.cform');if(!f)return;e.preventDefault();
+  const i=f.querySelector('input'),txt=i.value.trim(),id=f.dataset.id;
+  if(!txt)return;
+  try{
+    await addDoc(collection(db,'posts',id,'comments'),{uid,handle:me.handle,text:txt,createdAt:serverTimestamp()});
+    await loadComments(id);
+    const n=document.getElementById('c-'+id);if(n)n.focus();
+  }catch(err){toast('Could not post the comment.')}
+});
+document.addEventListener('pointerup',e=>{
+  const m=e.target.closest('[data-media]');if(!m)return;
+  const id=m.dataset.media,now=Date.now();
+  if(lastTap[id]&&now-lastTap[id]<320){
+    lastTap[id]=0;toggleLike(id,true);
+    document.querySelectorAll(`[data-media="${id}"]`).forEach(el=>{const b=document.createElement('div');b.className='burst';b.innerHTML=svg(P.heart,true,1);el.appendChild(b);setTimeout(()=>b.remove(),800)});
+  }else lastTap[id]=now;
+});
+window.addEventListener('hashchange',()=>{prof=null;profLoading=null;render();window.scrollTo(0,0)});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b7a87">
+<title>Enjoygram</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#edf0f7; --surface:#ffffff; --fg:#141a2c; --muted:#5b6480; --line:#dde1ec;
+  --accent:#0b7a87; --accent-fg:#ffffff; --ring1:#f2a33a; --ring2:#e2556b; --heart:#e2425c;
+  --font-display:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#0d1120; --surface:#161b2e; --fg:#eceff8; --muted:#9aa3bf; --line:#272d45;
+    --accent:#3cc4d1; --accent-fg:#06222a; --ring1:#f5b04e; --ring2:#ff6b82; --heart:#ff5d7a;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--font-body);padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.in{max-width:520px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top .in{display:flex;align-items:center;justify-content:space-between;height:54px}
+.brand{display:flex;align-items:center;gap:10px;font:700 24px/1 var(--font-display);letter-spacing:-.02em}
+.mark{display:grid;grid-template-columns:1fr 1fr;gap:3px;width:24px;height:24px}
+.mark i{border-radius:5px;background:var(--accent)}
+.mark i:nth-child(2){background:var(--ring1)}
+.mark i:nth-child(3){background:var(--ring2)}
+.mark i:nth-child(4){background:var(--fg);opacity:.85}
+.iconbtn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px}
+.iconbtn:hover{background:var(--bg)}
+
+main{max-width:520px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+
+.av{width:var(--s,40px);height:var(--s,40px);border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;font:700 calc(var(--s,40px)*.4)/1 var(--font-display);background:linear-gradient(135deg,hsl(var(--h) 70% 52%),hsl(calc(var(--h) + 45) 75% 40%))}
+
+.post{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:16px}
+.phead{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.phead .who{min-width:0;flex:1}
+.phead b{display:block;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phead small{color:var(--muted)}
+.media{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--line);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.media img{width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none}
+.burst{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#fff;animation:pop .7s ease-out forwards}
+.burst svg{width:96px;height:96px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.4))}
+@keyframes pop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.15);opacity:1}60%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}
+.acts{display:flex;align-items:center;padding:6px 8px 0}
+.acts .sp{flex:1}
+.act{width:44px;height:44px;display:grid;place-items:center;border-radius:12px}
+.act:hover{background:var(--bg)}
+.act.on.like{color:var(--heart)}
+.act.on.save{color:var(--accent)}
+.pbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:6px}
+.likes{font-weight:700;font-variant-numeric:tabular-nums}
+.cap b,.cmt b{font-weight:700;margin-right:6px}
+.more{color:var(--muted);text-align:left;padding:2px 0;min-height:32px}
+.cmt{overflow-wrap:anywhere}
+.cform{display:flex;gap:8px;margin-top:6px;border-top:1px solid var(--line);padding-top:10px}
+.cform input{flex:1;min-width:0;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:9px 14px}
+.cform button{font-weight:700;color:var(--accent);padding:0 6px;min-height:44px}
+.cform button:disabled{opacity:.4;cursor:default}
+
+.fbtn{min-height:36px;padding:0 14px;border-radius:999px;font-weight:700;font-size:13px;background:var(--accent);color:var(--accent-fg);flex:none}
+.fbtn.on{background:var(--bg);color:var(--fg);border:1px solid var(--line)}
+.fbtn.quiet{background:none;color:var(--muted);border:1px solid var(--line)}
+.fbtn.danger{background:var(--heart);color:#fff}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav .in{display:flex;justify-content:space-around;align-items:center;height:60px}
+.nav a,.nav button{flex:1;height:60px;display:grid;place-items:center;color:var(--muted)}
+.nav [aria-current="page"]{color:var(--fg)}
+.nav .addbtn span{width:46px;height:34px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:var(--accent-fg)}
+
+.sec-title{font:700 20px/1.2 var(--font-display);letter-spacing:-.01em;margin:4px 0 12px}
+.search{display:block;width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:14px;overflow:hidden}
+.tile{position:relative;aspect-ratio:1/1;background:var(--line);display:block;width:100%}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile em{position:absolute;left:6px;bottom:6px;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:rgba(10,14,28,.55);padding:2px 8px;border-radius:999px;font-variant-numeric:tabular-nums}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:28px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty b{color:var(--fg);font:700 18px/1.2 var(--font-display)}
+
+.prof{display:flex;align-items:center;gap:18px;margin-bottom:14px}
+.stats{display:flex;gap:20px;flex:1;justify-content:space-around;text-align:center}
+.stats b{display:block;font:700 20px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.stats small{color:var(--muted)}
+.tabs{display:flex;border-bottom:1px solid var(--line);margin:14px 0 12px}
+.tabs button{flex:1;min-height:44px;color:var(--muted);font-weight:700;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+.bio{margin-top:4px;overflow-wrap:anywhere}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:12px;font-weight:700;background:var(--bg);border:1px solid var(--line);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(8,12,26,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet-body{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow-y:auto;border-radius:20px 20px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.sheet-body .post{margin:0}
+.shead{display:flex;align-items:center;justify-content:space-between}
+.shead b{font:700 18px/1 var(--font-display)}
+.preview{aspect-ratio:1/1;max-width:100%;border-radius:16px;background:var(--surface);border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);text-align:center;overflow:hidden;padding:12px}
+.preview img{width:100%;height:100%;object-fit:cover;display:block}
+.field{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;resize:vertical;min-height:76px}
+.lbl{font-weight:700;font-size:13px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+
+.auth{min-height:100vh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.auth-card{width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px}
+.auth-card h1{font:700 28px/1.15 var(--font-display);letter-spacing:-.02em;margin:8px 0 0;text-wrap:balance}
+.auth-card p{margin:0;color:var(--muted)}
+.auth .field{min-height:0;font-size:18px;letter-spacing:.02em}
+.err{color:var(--heart);font-weight:700;min-height:1.4em}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion: reduce){.burst{animation-duration:.01s}}
+
+/* stories */
+.stories{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 14px;scrollbar-width:none}
+.stories::-webkit-scrollbar{display:none}
+.story{flex:none;width:68px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.story small{max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px}
+.ring{padding:3px;border-radius:50%;background:linear-gradient(135deg,var(--ring1),var(--ring2));position:relative;display:grid}
+.ring .av{border:3px solid var(--bg)}
+.ring.seen{background:var(--line)}
+.ring.none{background:transparent}
+.plusb{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font:700 16px/20px sans-serif;font-style:normal;text-align:center;border:2px solid var(--bg)}
+.sv{position:fixed;inset:0;z-index:50;background:#000;color:#fff;display:flex;align-items:center;justify-content:center}
+.svimg{max-width:520px;width:100%;height:100%;object-fit:contain;display:block}
+.svbars{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;gap:4px;z-index:3}
+.svbars span{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden}
+.svbars i{display:block;height:100%;width:0;background:#fff}
+.svbars i.run{animation:svfill 5s linear forwards}
+@keyframes svfill{from{width:0}to{width:100%}}
+.svhead{position:absolute;top:calc(22px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;align-items:center;gap:10px;z-index:3;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.svhead small{opacity:.8}
+.svbtn{min-height:44px;min-width:44px;padding:0 10px;display:grid;place-items:center;color:#fff;font-weight:700}
+.svnav{position:absolute;top:0;bottom:0;z-index:1;background:none}
+.svnav.prev{left:0;width:35%}
+.svnav.next{right:0;width:65%}
+.choose{display:flex;flex-direction:column;gap:10px}
+.choose .btn{justify-content:flex-start;gap:10px;min-height:56px}
+.choose .btn small{color:var(--muted);font-weight:400;margin-left:auto}
+
+/* reels */
+.reels{position:fixed;left:0;right:0;top:calc(55px + env(safe-area-inset-top,0px));bottom:calc(61px + env(safe-area-inset-bottom,0px));overflow-y:auto;scroll-snap-type:y mandatory;background:#000;z-index:10;overscroll-behavior:contain;scrollbar-width:none}
+.reels::-webkit-scrollbar{display:none}
+.reel{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;color:#fff}
+.reel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.reel::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(0,0,0,.6));pointer-events:none}
+.rtap{position:absolute;inset:0;z-index:1;background:none}
+.rinfo{position:absolute;left:14px;right:80px;bottom:18px;z-index:2;text-shadow:0 1px 6px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px}
+.rwho{display:flex;align-items:center;gap:8px;color:#fff}
+.rcap{overflow-wrap:anywhere}
+.rside{position:absolute;right:8px;bottom:18px;z-index:2;display:flex;flex-direction:column;gap:14px;align-items:center}
+.ract{width:48px;display:grid;justify-items:center;gap:2px;color:#fff;font-weight:700;font-size:12px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
+.ract.on{color:var(--heart)}
+.preview.tall{aspect-ratio:9/16;max-height:50vh;margin:0 auto}
+.preview video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+</style>
+</head>
+<body>
+<header class="top" id="topbar" hidden><div class="in">
+  <a class="brand" href="#home" aria-label="Enjoygram home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Enjoygram</a>
+  <button class="iconbtn" data-action="add" aria-label="New post" id="topAdd"></button>
+</div></header>
+<div id="root"></div>
+<nav class="nav" id="botnav" aria-label="Main" hidden><div class="in">
+  <a href="#home" id="n-home" aria-label="Home"></a>
+  <a href="#explore" id="n-explore" aria-label="Explore"></a>
+  <a href="#reels" id="n-reels" aria-label="Reels"></a>
+  <button class="addbtn" data-action="add" aria-label="New post"><span id="n-add"></span></button>
+  <a href="#profile" id="n-profile" aria-label="My profile"></a>
+</div></nav>
+<div id="layer"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import {getAuth,RecaptchaVerifier,signInWithPhoneNumber,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {getFirestore,doc,getDoc,setDoc,addDoc,deleteDoc,updateDoc,collection,query,orderBy,limit,where,getDocs,onSnapshot,serverTimestamp,arrayUnion,arrayRemove,writeBatch,Timestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import * as cfg from './firebase-config.js';
+const {firebaseConfig}=cfg;
+const cld=cfg.cloudinaryConfig||{};
+const cldOK=()=>!!(cld.cloudName&&cld.uploadPreset&&!/^PASTE/.test(cld.cloudName+cld.uploadPreset));
+
+const root=document.getElementById('root'),layer=document.getElementById('layer');
+const configured=!Object.values(firebaseConfig).some(v=>String(v).startsWith('PASTE'));
+let auth,db;
+if(configured){const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);auth.useDeviceLanguage()}
+
+/* ---------- helpers ---------- */
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const svg=(p,f,w)=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="${f?'currentColor':'none'}" stroke="currentColor" stroke-width="${w||1.8}" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${p}</svg>`;
+const P={
+  heart:'<path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/>',
+  chat:'<path d="M4 5.5h16v10.5H10.5L6 19.5V16H4z"/>',
+  save:'<path d="M6.5 4h11v16.5L12 16.5l-5.5 4z"/>',
+  home:'<path d="M4 11l8-6.5 8 6.5v8.5h-5v-5.5H9v5.5H4z"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  user:'<circle cx="12" cy="8.5" r="3.7"/><path d="M5 20c1-4 4-5.6 7-5.6s6 1.6 7 5.6"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>',
+  reels:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M10 8.5l5 3.5-5 3.5z"/>',
+  trash:'<path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13"/>',
+  sound:'<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/>',
+  mute:'<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M16 9.5l4 5M20 9.5l-4 5"/>'
+};
+const FILTERS=[['Normal',''],['Warm','sepia(.35) saturate(1.3) hue-rotate(-10deg)'],['Cool','saturate(1.1) hue-rotate(15deg) brightness(1.05)'],['Mono','grayscale(1) contrast(1.1)'],['Vivid','saturate(1.7) contrast(1.08)'],['Fade','contrast(.85) brightness(1.1) saturate(.8)']];
+const hue=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))%360;return h};
+const av=(handle,id,size)=>`<span class="av" style="--h:${hue(id)};--s:${size}px">${esc((handle||'?').charAt(0).toUpperCase())}</span>`;
+const ms=t=>t&&t.toMillis?t.toMillis():Date.now();
+const rel=t=>{const m=Math.max(1,Math.round((Date.now()-ms(t))/60000));if(m<60)return m+'m';const h=Math.round(m/60);return h<24?h+'h':Math.round(h/24)+'d'};
+const fstyle=p=>p.filter?` style="filter:${esc(p.filter)}"`:'';
+let tt;
+const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{t.hidden=true},2800)};
+
+document.getElementById('topAdd').innerHTML=svg(P.plus,false,2);
+document.getElementById('n-home').innerHTML=svg(P.home);
+document.getElementById('n-explore').innerHTML=svg(P.search);
+document.getElementById('n-reels').innerHTML=svg(P.reels);
+document.getElementById('n-add').innerHTML=svg(P.plus,false,2.4);
+document.getElementById('n-profile').innerHTML=svg(P.user);
+
+/* ---------- state ---------- */
+let uid=null,me=null,posts=[],following=new Set(),saved=new Set(),savedPosts=[],unsubs=[];
+let stories=[],reels=[],sv=null,svTimer=null,reelIO=null,reelMuted=true;
+let seen=new Set();try{seen=new Set(JSON.parse(localStorage.getItem('eg_seen')||'[]'))}catch(e){}
+const markSeen=id=>{if(seen.has(id))return;seen.add(id);try{localStorage.setItem('eg_seen',JSON.stringify([...seen].slice(-300)))}catch(e){}};
+let feedTab='all',tab='posts',prof=null,profLoading=null,query_='',openId=null;
+let authStep=1,phoneVal='+91 ',authErr='',authBusy=false,confirmation=null,verifier=null,setupErr='';
+const commentsCache={},expanded={},confirmDel={},lastTap={};
+let draft={src:null,filter:''},dirty=false;
+
+const view=()=>{const h=(location.hash||'#home').slice(1);return h==='explore'||h==='reels'||h==='profile'||h.startsWith('user-')?h:'home'};
+const findPost=id=>posts.find(p=>p.id===id)||(prof&&prof.posts&&prof.posts.find(p=>p.id===id))||savedPosts.find(p=>p.id===id);
+
+/* ---------- views ---------- */
+function postHTML(p){
+  const liked=p.likes.includes(uid),own=p.uid===uid,c=commentsCache[p.id];
+  let act='';
+  if(own)act=confirmDel[p.id]?`<button class="fbtn danger" data-action="delyes" data-id="${p.id}">Delete post</button><button class="fbtn quiet" data-action="delno" data-id="${p.id}">Keep</button>`:`<button class="fbtn quiet" data-action="del" data-id="${p.id}">Delete</button>`;
+  else act=`<button class="fbtn${following.has(p.uid)?' on':''}" data-action="follow" data-u="${p.uid}" aria-pressed="${following.has(p.uid)}">${following.has(p.uid)?'Following':'Follow'}</button>`;
+  let h=`<article class="post" data-post="${p.id}"><div class="phead">${av(p.handle,p.uid,38)}<div class="who"><a href="#${own?'profile':'user-'+p.uid}"><b>${esc(p.handle)}</b></a><small>${rel(p.createdAt)} ago</small></div>${act}</div>`;
+  h+=`<div class="media" data-media="${p.id}"><img src="${p.image}"${fstyle(p)} alt="Photo by ${esc(p.handle)}" draggable="false"></div>`;
+  h+=`<div class="acts"><button class="act like${liked?' on':''}" data-action="like" data-id="${p.id}" aria-pressed="${liked}" aria-label="Like">${svg(P.heart,liked)}</button><button class="act" data-action="focuscmt" data-id="${p.id}" aria-label="Comment">${svg(P.chat)}</button><span class="sp"></span><button class="act save${saved.has(p.id)?' on':''}" data-action="save" data-id="${p.id}" aria-pressed="${saved.has(p.id)}" aria-label="Save">${svg(P.save,saved.has(p.id))}</button></div>`;
+  h+=`<div class="pbody"><div class="likes">${p.likes.length.toLocaleString('en-IN')} likes</div>`;
+  if(p.caption)h+=`<div class="cap"><b>${esc(p.handle)}</b>${esc(p.caption)}</div>`;
+  if(c)c.forEach(m=>{h+=`<div class="cmt"><b>${esc(m.handle)}</b>${esc(m.text)}</div>`});
+  else h+=`<button class="more" data-action="loadcmt" data-id="${p.id}">View comments</button>`;
+  h+=`<form class="cform" data-id="${p.id}" autocomplete="off"><input type="text" id="c-${p.id}" maxlength="200" placeholder="Add a comment" aria-label="Add a comment"><button type="submit" disabled>Post</button></form></div></article>`;
+  return h;
+}
+function updatePost(id){
+  const p=findPost(id);if(!p)return;
+  document.querySelectorAll(`[data-post="${id}"]`).forEach(el=>{const t=document.createElement('div');t.innerHTML=postHTML(p);el.replaceWith(t.firstChild)});
+}
+function tilesHTML(list){
+  if(!list.length)return '<div class="empty"><b>No posts</b>Nothing to show here yet.</div>';
+  return '<div class="grid">'+list.map(p=>`<button class="tile" data-action="openpost" data-id="${p.id}" aria-label="Open post by ${esc(p.handle)}"><img src="${p.image}"${fstyle(p)} alt=""><em>${p.likes.length}</em></button>`).join('')+'</div>';
+}
+function storyGroups(){
+  const cut=Date.now()-864e5;
+  const live=stories.filter(s=>ms(s.createdAt)>cut).sort((a,b)=>ms(a.createdAt)-ms(b.createdAt));
+  const m=new Map();
+  live.forEach(s=>{if(!m.has(s.uid))m.set(s.uid,{uid:s.uid,handle:s.handle,list:[]});m.get(s.uid).list.push(s)});
+  const rank=x=>x.uid===uid?0:following.has(x.uid)?1:2,last=x=>ms(x.list[x.list.length-1].createdAt);
+  return [...m.values()].sort((a,b)=>rank(a)-rank(b)||last(b)-last(a));
+}
+function storiesHTML(){
+  if(!me)return '';
+  const g=storyGroups(),mine=g.find(x=>x.uid===uid),allSeen=x=>x.list.every(s=>seen.has(s.id));
+  let h='<div class="stories" aria-label="Stories">';
+  h+=`<button class="story" data-action="${mine?'viewstory':'newstory'}" data-u="${uid}" aria-label="Your story"><span class="ring${mine?(allSeen(mine)?' seen':''):' none'}">${av(me.handle,uid,58)}${mine?'':'<i class="plusb">+</i>'}</span><small>Your story</small></button>`;
+  g.filter(x=>x.uid!==uid).forEach(x=>{h+=`<button class="story" data-action="viewstory" data-u="${x.uid}" aria-label="Story by ${esc(x.handle)}"><span class="ring${allSeen(x)?' seen':''}">${av(x.handle,x.uid,58)}</span><small>${esc(x.handle)}</small></button>`});
+  return h+'</div>';
+}
+function reelHTML(r){
+  const liked=r.likes.includes(uid),own=r.uid===uid;
+  return `<section class="reel" data-reel="${r.id}"><video src="${esc(r.video)}" poster="${esc(r.poster||'')}" loop playsinline muted preload="metadata"></video><button class="rtap" data-action="rplay" aria-label="Play or pause"></button><div class="rinfo"><a class="rwho" href="#${own?'profile':'user-'+r.uid}">${av(r.handle,r.uid,34)}<b>${esc(r.handle)}</b></a>${r.caption?`<div class="rcap">${esc(r.caption)}</div>`:''}</div><div class="rside"><button class="ract like${liked?' on':''}" data-action="rlike" data-id="${r.id}" aria-pressed="${liked}" aria-label="Like">${svg(P.heart,liked)}<span>${r.likes.length}</span></button><button class="ract rmute" data-action="rmute" aria-label="Sound">${svg(reelMuted?P.mute:P.sound)}</button>${own?`<button class="ract" data-action="rdel" data-id="${r.id}" aria-label="Delete reel">${svg(P.trash)}</button>`:''}</div></section>`;
+}
+function reelsHTML(){
+  if(!reels.length)return '<main><div class="empty"><b>No reels yet</b>Share the first short video.<button class="btn primary" data-action="newreel">New reel</button></div></main>';
+  return '<div class="reels">'+reels.map(reelHTML).join('')+'</div>';
+}
+function paintReel(r){
+  const el=root.querySelector(`[data-reel="${r.id}"] .ract.like`);if(!el)return;
+  const liked=r.likes.includes(uid);
+  el.classList.toggle('on',liked);el.setAttribute('aria-pressed',liked);el.innerHTML=svg(P.heart,liked)+`<span>${r.likes.length}</span>`;
+}
+function initReels(){
+  if(reelIO){reelIO.disconnect();reelIO=null}
+  const box=root.querySelector('.reels');if(!box)return;
+  reelIO=new IntersectionObserver(es=>es.forEach(en=>{
+    const v=en.target.querySelector('video');if(!v)return;
+    if(en.isIntersecting){v.muted=reelMuted;v.play().catch(()=>{})}else{v.pause();try{v.currentTime=0}catch(e){}}
+  }),{root:box,threshold:.7});
+  box.querySelectorAll('.reel').forEach(s=>reelIO.observe(s));
+}
+function homeHTML(){
+  let h=storiesHTML()+`<div class="tabs" role="tablist"><button role="tab" data-action="feed" data-t="all" aria-selected="${feedTab==='all'}">For you</button><button role="tab" data-action="feed" data-t="following" aria-selected="${feedTab==='following'}">Following</button></div>`;
+  const list=feedTab==='following'?posts.filter(p=>p.uid===uid||following.has(p.uid)):posts;
+  if(!list.length)return h+`<div class="empty"><b>${feedTab==='following'?'No posts from people you follow':'No posts yet'}</b>${feedTab==='following'?'Follow people from the For you tab.':'Be the first to share a photo.'}<button class="btn primary" data-action="add">New post</button></div>`;
+  return h+list.map(postHTML).join('');
+}
+function exploreHTML(){
+  const q=query_.trim().toLowerCase();
+  const list=posts.filter(p=>!q||p.handle.includes(q)||(p.caption||'').toLowerCase().includes(q));
+  return `<h1 class="sec-title">Explore</h1><input class="search" id="q" type="search" value="${esc(query_)}" placeholder="Search captions or usernames" aria-label="Search"><div id="tiles">${tilesHTML(list)}</div>`;
+}
+function profileHTML(target){
+  if(!prof||prof.uid!==target)return '<div class="empty">Loading profile…</div>';
+  if(prof.missing)return '<div class="empty"><b>Profile not found</b>This account does not exist.</div>';
+  const u=prof.user,own=target===uid,got=prof.posts.reduce((a,p)=>a+p.likes.length,0);
+  let h=`<div class="prof">${av(u.handle,target,84)}<div class="stats"><div><b>${prof.posts.length}</b><small>Posts</small></div><div><b>${got}</b><small>Likes</small></div>${own?`<div><b>${following.size}</b><small>Following</small></div>`:''}</div></div>`;
+  h+=`<div><b>${esc(u.name)}</b><div style="color:var(--muted)">@${esc(u.handle)}</div>${u.bio?`<div class="bio">${esc(u.bio)}</div>`:''}</div>`;
+  h+='<div class="row" style="margin-top:12px">';
+  if(own)h+='<button class="btn" data-action="editprofile">Edit profile</button><button class="btn" data-action="logout">Log out</button>';
+  else h+=`<button class="fbtn${following.has(target)?' on':''}" data-action="follow" data-u="${target}" aria-pressed="${following.has(target)}" style="min-height:44px;padding:0 22px">${following.has(target)?'Following':'Follow'}</button>`;
+  h+='</div>';
+  if(own){
+    h+=`<div class="tabs" role="tablist"><button role="tab" data-action="tab" data-t="posts" aria-selected="${tab==='posts'}">Posts</button><button role="tab" data-action="tab" data-t="saved" aria-selected="${tab==='saved'}">Saved</button></div>`;
+    h+=tab==='posts'?(prof.posts.length?tilesHTML(prof.posts):'<div class="empty"><b>No posts yet</b>Share your first photo.<button class="btn primary" data-action="add">New post</button></div>'):(savedPosts.length?tilesHTML(savedPosts):'<div class="empty"><b>Nothing saved</b>Tap the bookmark on any post.</div>');
+  }else h+='<div style="height:12px"></div>'+tilesHTML(prof.posts);
+  return h;
+}
+function authHTML(){
+  let h='<div class="auth"><div class="auth-card"><div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Enjoygram</div>';
+  if(authStep===1){
+    h+=`<h1>Log in with your mobile number</h1><p>We will send a 6-digit OTP by SMS. One mobile number gets one account.</p><label class="lbl" for="phone">Mobile number</label><input class="field" id="phone" type="tel" inputmode="tel" autocomplete="tel" value="${esc(phoneVal)}" placeholder="+91 98765 43210"><div class="err" role="alert">${esc(authErr)}</div><button class="btn primary" id="send-otp" data-action="sendotp"${authBusy?' disabled':''}>${authBusy?'Sending…':'Send OTP'}</button>`;
+  }else{
+    h+=`<h1>Enter the OTP</h1><p>We sent a code to ${esc(phoneVal)}.</p><label class="lbl" for="otp">6-digit OTP</label><input class="field" id="otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"><div class="err" role="alert">${esc(authErr)}</div><button class="btn primary" data-action="verify"${authBusy?' disabled':''}>${authBusy?'Checking…':'Verify and continue'}</button><button class="btn" data-action="changenum">Change number</button>`;
+  }
+  return h+'</div></div>';
+}
+function setupHTML(){
+  return `<div class="auth"><div class="auth-card"><div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Enjoygram</div><h1>Create your profile</h1><p>Your username is unique and cannot be changed later.</p><label class="lbl" for="sname">Name</label><input class="field" id="sname" maxlength="30" autocomplete="name"><label class="lbl" for="shandle">Username</label><input class="field" id="shandle" maxlength="20" autocapitalize="none" autocomplete="off" placeholder="letters, numbers, . and _"><div class="err" role="alert">${esc(setupErr)}</div><button class="btn primary" data-action="createprofile">Create account</button><button class="btn" data-action="logout">Log out</button></div></div>`;
+}
+function setupMissingHTML(){
+  return '<div class="auth"><div class="auth-card"><h1>Add your Firebase keys</h1><p>Open <b>public/firebase-config.js</b> and paste the config from your Firebase project. The README has the steps.</p></div></div>';
+}
+
+/* ---------- render ---------- */
+function chrome(on){document.getElementById('topbar').hidden=!on;document.getElementById('botnav').hidden=!on;document.body.style.paddingBottom=on?'':'0'}
+function render(){
+  if(!configured){chrome(false);root.innerHTML=setupMissingHTML();return}
+  if(authState==='out'){chrome(false);root.innerHTML=authHTML();return}
+  if(authState==='setup'){chrome(false);root.innerHTML=setupHTML();return}
+  if(authState!=='in'){chrome(false);root.innerHTML='<div class="auth"><p>Loading…</p></div>';return}
+  chrome(true);
+  const v=view();let body;
+  if(v==='reels'){root.innerHTML=reelsHTML();initReels()}
+  else{
+    if(reelIO){reelIO.disconnect();reelIO=null}
+    if(v==='home')body=homeHTML();
+    else if(v==='explore')body=exploreHTML();
+    else{const target=v==='profile'?uid:v.slice(5);
+      if((!prof||prof.uid!==target)&&profLoading!==target)loadProfile(target);
+      body=profileHTML(target)}
+    root.innerHTML='<main>'+body+'</main>';
+  }
+  const cur=v.startsWith('user-')?'':v;
+  ['home','explore','reels','profile'].forEach(k=>{const a=document.getElementById('n-'+k);if(k===cur)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  refreshModal();
+}
+function softRender(){
+  if(authState==='in'&&view()==='reels'&&root.querySelector('.reels'))return;
+  const a=document.activeElement;
+  if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&root.contains(a)&&authState==='in'){dirty=true;return}
+  render();
+}
+document.addEventListener('focusout',()=>{if(dirty){dirty=false;setTimeout(render,0)}});
+
+/* ---------- auth ---------- */
+let authState='loading';
+if(configured){
+  onAuthStateChanged(auth,async user=>{
+    unsubs.forEach(u=>u());unsubs=[];
+    if(!user){uid=null;me=null;posts=[];prof=null;authState='out';authStep=1;render();return}
+    uid=user.uid;
+    try{
+      const s=await getDoc(doc(db,'users',uid));
+      if(!s.exists()){authState='setup';render();return}
+      me=s.data();authState='in';startListeners();render();
+    }catch(e){authState='out';authErr='Could not load your account: '+(e.code||e.message);render()}
+  });
+}
+function startListeners(){
+  unsubs.push(onSnapshot(query(collection(db,'posts'),orderBy('createdAt','desc'),limit(40)),s=>{posts=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));softRender()},e=>toast('Could not load posts: '+(e.code||''))));
+  unsubs.push(onSnapshot(collection(db,'users',uid,'following'),s=>{following=new Set(s.docs.map(d=>d.id));softRender()}));
+  unsubs.push(onSnapshot(collection(db,'users',uid,'saved'),s=>{saved=new Set(s.docs.map(d=>d.id));softRender()}));
+  unsubs.push(onSnapshot(query(collection(db,'stories'),where('createdAt','>',Timestamp.fromMillis(Date.now()-864e5)),orderBy('createdAt','asc'),limit(100)),s=>{stories=s.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));softRender()},e=>toast('Could not load stories: '+(e.code||''))));
+  unsubs.push(onSnapshot(query(collection(db,'reels'),orderBy('createdAt','desc'),limit(30)),s=>{
+    reels=s.docs.map(d=>({id:d.id,likes:[],...d.data({serverTimestamps:'estimate'})}));
+    if(authState==='in'&&view()==='reels'&&root.querySelector('.reels'))reels.forEach(paintReel);else softRender();
+  },e=>toast('Could not load reels: '+(e.code||''))));
+}
+function normPhone(v){
+  let s=String(v).replace(/[\s-]/g,'');
+  if(/^\d{10}$/.test(s))s='+91'+s;
+  return /^\+\d{10,15}$/.test(s)?s:null;
+}
+async function sendOtp(){
+  const el=document.getElementById('phone');phoneVal=el?el.value:phoneVal;
+  const num=normPhone(phoneVal);
+  if(!num){authErr='Enter a valid mobile number, for example +91 98765 43210.';render();return}
+  authBusy=true;authErr='';render();
+  try{
+    if(verifier){try{verifier.clear()}catch(e){}}
+    verifier=new RecaptchaVerifier(auth,'send-otp',{size:'invisible'});
+    confirmation=await signInWithPhoneNumber(auth,num,verifier);
+    phoneVal=num;authStep=2;authBusy=false;authErr='';render();
+  }catch(e){
+    authBusy=false;
+    authErr=e.code==='auth/invalid-phone-number'?'That number does not look right.':e.code==='auth/too-many-requests'?'Too many attempts. Try again later.':'Could not send the OTP ('+(e.code||'error')+').';
+    try{verifier.clear()}catch(x){} verifier=null;render();
+  }
+}
+async function verifyOtp(){
+  const code=(document.getElementById('otp').value||'').trim();
+  if(!/^\d{6}$/.test(code)){authErr='Enter the 6-digit code.';render();return}
+  authBusy=true;authErr='';render();
+  try{await confirmation.confirm(code);authBusy=false}
+  catch(e){authBusy=false;authErr=e.code==='auth/invalid-verification-code'?'That OTP is wrong.':e.code==='auth/code-expired'?'That OTP expired. Go back and request a new one.':'Could not verify ('+(e.code||'error')+').';render()}
+}
+async function createProfile(){
+  const name=document.getElementById('sname').value.trim().slice(0,30);
+  const handle=document.getElementById('shandle').value.trim().toLowerCase();
+  if(!name){setupErr='Enter your name.';render();return}
+  if(!/^[a-z0-9._]{3,20}$/.test(handle)){setupErr='Username: 3 to 20 letters, numbers, dots or underscores.';render();return}
+  try{
+    const b=writeBatch(db);
+    b.set(doc(db,'handles',handle),{uid});
+    b.set(doc(db,'users',uid),{name,handle,bio:'',createdAt:serverTimestamp()});
+    await b.commit();
+    me={name,handle,bio:''};authState='in';setupErr='';startListeners();location.hash='#home';render();
+  }catch(e){setupErr='That username is taken. Try another one.';render()}
+}
+  
+/* ---------- profile loading ---------- */
+async function loadProfile(target){
+  profLoading=target;
+  try{
+    const us=await getDoc(doc(db,'users',target));
+    if(!us.exists()){prof={uid:target,missing:true}}
+    else{
+      const ps=await getDocs(query(collection(db,'posts'),where('uid','==',target)));
+      const list=ps.docs.map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})})).sort((a,b)=>ms(b.createdAt)-ms(a.createdAt));
+      prof={uid:target,user:us.data(),posts:list};
+    }
+  }catch(e){prof={uid:target,missing:true}}
+  profLoading=null;render();
+}
+async function loadSaved(){
+  const docs=await Promise.all([...saved].map(id=>getDoc(doc(db,'posts',id))));
+  savedPosts=docs.filter(d=>d.exists()).map(d=>({id:d.id,...d.data({serverTimestamps:'estimate'})}));
+  render();
+}
+
+/* ---------- sheets ---------- */
+function closeLayer(){
+  const wasStory=!!sv;clearTimeout(svTimer);sv=null;
+  layer.innerHTML='';openId=null;document.body.style.overflow='';
+  if(wasStory)softRender();
+}
+const sheetHTML=(title,inner)=>`<div class="sheet" data-sheet><div class="sheet-body" role="dialog" aria-modal="true" aria-label="${title}"><div class="shead"><b>${title}</b><button class="iconbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div>${inner}</div></div>`;
+function openChooser(){
+  layer.innerHTML=sheetHTML('Create','<div class="choose"><button class="btn" data-action="newpost">Post<small>Photo with a caption</small></button><button class="btn" data-action="newstory">Story<small>Photo, gone in 24 hours</small></button><button class="btn" data-action="newreel">Reel<small>Short video</small></button></div>');
+  document.body.style.overflow='hidden';
+}
+/* stories viewer */
+function openStories(u){
+  const g=storyGroups().find(x=>x.uid===u);if(!g)return;
+  let i=g.list.findIndex(s=>!seen.has(s.id));if(i<0)i=0;
+  sv={list:g.list,i};document.body.style.overflow='hidden';showStory();
+}
+function showStory(){
+  const s=sv.list[sv.i];markSeen(s.id);
+  layer.innerHTML=`<div class="sv" role="dialog" aria-modal="true" aria-label="Story"><img class="svimg" src="${s.image}"${fstyle(s)} alt="Story by ${esc(s.handle)}"><button class="svnav prev" data-action="svprev" aria-label="Previous"></button><button class="svnav next" data-action="svnext" aria-label="Next"></button><div class="svbars">${sv.list.map((x,k)=>`<span><i${k<sv.i?' style="width:100%"':''}${k===sv.i?' class="run"':''}></i></span>`).join('')}</div><div class="svhead">${av(s.handle,s.uid,34)}<b>${esc(s.handle)}</b><small>${rel(s.createdAt)}</small><span style="flex:1"></span>${s.uid===uid?`<button class="svbtn" data-action="delstory" data-id="${s.id}">Delete</button>`:''}<button class="svbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div></div>`;
+  clearTimeout(svTimer);svTimer=setTimeout(svNext,5000);
+}
+function svNext(){if(!sv)return;if(sv.i<sv.list.length-1){sv.i++;showStory()}else closeLayer()}
+function svPrev(){if(!sv)return;if(sv.i>0)sv.i--;showStory()}
+function refreshModal(){
+  if(!openId)return;
+  const p=findPost(openId);if(!p){closeLayer();return}
+  const b=layer.querySelector('.sheet-body');if(!b)return;
+  const old=b.querySelector('.post');if(old){const t=document.createElement('div');t.innerHTML=postHTML(p);old.replaceWith(t.firstChild)}
+}
+function openPostSheet(id){
+  openId=id;
+  layer.innerHTML=`<div class="sheet" data-sheet><div class="sheet-body" role="dialog" aria-modal="true" aria-label="Post"><div class="shead"><b>Post</b><button class="iconbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div>${postHTML(findPost(id))}</div></div>`;
+  document.body.style.overflow='hidden';
+}
+function openCompose(kind){
+  kind=kind||'post';draft={kind,src:null,filter:'',file:null};
+  const title={post:'New post',story:'New story',reel:'New reel'}[kind],vid=kind==='reel';
+  if(vid&&!cldOK()){
+    layer.innerHTML=sheetHTML(title,'<p>Reels need a video host. Add your Cloudinary <b>cloudName</b> and <b>uploadPreset</b> in <b>firebase-config.js</b> (see the steps shared with this update), then try again.</p>');
+    document.body.style.overflow='hidden';return;
+  }
+  layer.innerHTML=sheetHTML(title,`<div class="preview${vid?' tall':''}" id="pv">Choose a ${vid?'video':'photo'} from your phone.</div><div class="chips" id="flt" role="group" aria-label="Filters"></div><div class="row"><label class="btn" for="file" tabindex="0">Choose ${vid?'video':'photo'}</label><input id="file" type="file" accept="${vid?'video/*':'image/*'}" hidden></div>${kind==='story'?'':`<label class="lbl" for="cap">Caption</label><textarea class="field" id="cap" maxlength="300" placeholder="Write a caption"></textarea>`}<button class="btn primary" id="shareBtn" data-action="share" disabled>Share</button>`);
+  document.body.style.overflow='hidden';
+}
+function onVideo(f){
+  if(!f)return;
+  if(f.size>60*1024*1024){toast('That video is too large. Max 60 MB.');return}
+  const url=URL.createObjectURL(f),v=document.createElement('video');
+  v.preload='metadata';
+  v.onloadedmetadata=()=>{
+    if(v.duration>90){URL.revokeObjectURL(url);toast('Reels can be up to 90 seconds.');return}
+    draft.file=f;draft.src=url;updateCompose();
+  };
+  v.onerror=()=>{URL.revokeObjectURL(url);toast('Could not read that video.')};
+  v.src=url;
+}
+function uploadVideo(file,onp){
+  return new Promise((res,rej)=>{
+    const x=new XMLHttpRequest(),fd=new FormData(),fail=m=>{const e=new Error(m);e.code='upload';rej(e)};
+    x.open('POST',`https://api.cloudinary.com/v1_1/${encodeURIComponent(cld.cloudName)}/video/upload`);
+    x.upload.onprogress=e=>{if(e.lengthComputable)onp(e.loaded/e.total)};
+    x.onload=()=>{try{const j=JSON.parse(x.responseText);if(x.status<300&&j.secure_url)res(j.secure_url);else fail(j.error&&j.error.message||'upload failed')}catch(e){fail('upload failed')}};
+    x.onerror=()=>fail('network error');
+    fd.append('file',file);fd.append('upload_preset',cld.uploadPreset);x.send(fd);
+  });
+}
+function updateCompose(){
+  const pv=document.getElementById('pv'),b=document.getElementById('shareBtn');if(!pv)return;
+  const vid=draft.kind==='reel';
+  pv.innerHTML=draft.src?(vid?`<video src="${draft.src}" controls playsinline muted></video>`:`<img src="${draft.src}" style="filter:${draft.filter}" alt="Preview of your post">`):`Choose a ${vid?'video':'photo'} from your phone.`;
+  b.disabled=!draft.src;
+  document.getElementById('flt').innerHTML=draft.src&&!vid?FILTERS.map((f,i)=>`<button class="chip" data-action="filter" data-i="${i}" aria-pressed="${draft.filter===f[1]}">${f[0]}</button>`).join(''):'';
+}
+function onFile(f){
+  if(!f)return;
+  const url=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{
+    const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    let q=.78,d=c.toDataURL('image/jpeg',q);
+    while(d.length>700000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q)}
+    URL.revokeObjectURL(url);
+    if(d.length>850000){toast('That photo is too large. Pick a smaller one.');return}
+    draft.src=d;updateCompose();
+  };
+  im.onerror=()=>toast('Could not read that image.');
+  im.src=url;
+}
+function openEdit(){
+  layer.innerHTML=`<div class="sheet" data-sheet><div class="sheet-body" role="dialog" aria-modal="true" aria-label="Edit profile"><div class="shead"><b>Edit profile</b><button class="iconbtn" data-action="close" aria-label="Close">${svg(P.close)}</button></div><label class="lbl" for="ename">Name</label><input class="search" style="margin:0" id="ename" maxlength="30" value="${esc(me.name)}"><label class="lbl" for="ebio">Bio</label><textarea class="field" id="ebio" maxlength="150">${esc(me.bio)}</textarea><button class="btn primary" data-action="saveprofile">Save</button></div></div>`;
+  document.body.style.overflow='hidden';
+}
+
+/* ---------- actions ---------- */
+async function toggleLike(id,force){
+  const p=findPost(id);if(!p)return;
+  const liked=p.likes.includes(uid);
+  if(force&&liked)return;
+  p.likes=liked?p.likes.filter(x=>x!==uid):p.likes.concat(uid);
+  updatePost(id);
+  try{await updateDoc(doc(db,'posts',id),{likes:liked?arrayRemove(uid):arrayUnion(uid)})}
+  catch(e){p.likes=liked?p.likes.concat(uid):p.likes.filter(x=>x!==uid);updatePost(id);toast('Could not update the like.')}
+}
+async function loadComments(id){
+  const s=await getDocs(query(collection(db,'posts',id,'comments'),orderBy('createdAt','asc'),limit(50)));
+  commentsCache[id]=s.docs.map(d=>d.data({serverTimestamps:'estimate'}));
+  updatePost(id);
+}
+document.addEventListener('click',async e=>{
+  if(e.target.matches('[data-sheet]')){closeLayer();return}
+  const t=e.target.closest('[data-action]');if(!t)return;
+  const a=t.dataset.action,id=t.dataset.id;
+  try{
+    if(a==='like')toggleLike(id);
+    else if(a==='save'){
+      const r=doc(db,'users',uid,'saved',id);
+      if(saved.has(id)){await deleteDoc(r);savedPosts=savedPosts.filter(p=>p.id!==id);toast('Removed from saved')}
+      else{await setDoc(r,{createdAt:serverTimestamp()});toast('Saved')}
+    }
+    else if(a==='loadcmt')loadComments(id);
+    else if(a==='focuscmt'){const i=document.getElementById('c-'+id);if(i)i.focus()}
+    else if(a==='follow'){
+      const u=t.dataset.u,r=doc(db,'users',uid,'following',u);
+      if(following.has(u)){await deleteDoc(r);toast('Unfollowed')}else{await setDoc(r,{createdAt:serverTimestamp()});toast('Following')}
+    }
+    else if(a==='feed'){feedTab=t.dataset.t;render()}
+    else if(a==='tab'){tab=t.dataset.t;if(tab==='saved')loadSaved();else render()}
+    else if(a==='add')openChooser();
+    else if(a==='newpost')openCompose('post');
+    else if(a==='newstory')openCompose('story');
+    else if(a==='newreel')openCompose('reel');
+    else if(a==='viewstory')openStories(t.dataset.u);
+    else if(a==='svnext')svNext();
+    else if(a==='svprev')svPrev();
+    else if(a==='delstory'){
+      clearTimeout(svTimer);
+      if(!confirm('Delete this story?')){svTimer=setTimeout(svNext,5000);return}
+      await deleteDoc(doc(db,'stories',id));
+      stories=stories.filter(s=>s.id!==id);closeLayer();toast('Story deleted');
+    }
+    else if(a==='rplay'){const v=t.closest('.reel').querySelector('video');if(v.paused)v.play().catch(()=>{});else v.pause()}
+    else if(a==='rmute'){
+      reelMuted=!reelMuted;
+      root.querySelectorAll('.reel video').forEach(v=>{v.muted=reelMuted});
+      root.querySelectorAll('.rmute').forEach(b=>{b.innerHTML=svg(reelMuted?P.mute:P.sound)});
+    }
+    else if(a==='rlike'){
+      const r=reels.find(x=>x.id===id);if(!r)return;
+      const liked=r.likes.includes(uid);
+      r.likes=liked?r.likes.filter(x=>x!==uid):r.likes.concat(uid);paintReel(r);
+      try{await updateDoc(doc(db,'reels',id),{likes:liked?arrayRemove(uid):arrayUnion(uid)})}
+      catch(e){r.likes=liked?r.likes.concat(uid):r.likes.filter(x=>x!==uid);paintReel(r);toast('Could not update the like.')}
+    }
+    else if(a==='rdel'){
+      if(!confirm('Delete this reel?'))return;
+      await deleteDoc(doc(db,'reels',id));
+      reels=reels.filter(r=>r.id!==id);render();toast('Reel deleted');
+    }
+    else if(a==='close')closeLayer();
+    else if(a==='filter'){draft.filter=FILTERS[parseInt(t.dataset.i,10)][1];updateCompose()}
+    else if(a==='openpost')openPostSheet(id);
+    else if(a==='del'){confirmDel[id]=true;updatePost(id)}
+    else if(a==='delno'){delete confirmDel[id];updatePost(id)}
+    else if(a==='delyes'){
+      await deleteDoc(doc(db,'posts',id));delete confirmDel[id];
+      posts=posts.filter(p=>p.id!==id);if(prof&&prof.posts)prof.posts=prof.posts.filter(p=>p.id!==id);
+      savedPosts=savedPosts.filter(p=>p.id!==id);closeLayer();render();toast('Post deleted');
+    }
+    else if(a==='share'){
+      if(!draft.src)return;
+      t.disabled=true;
+      const capEl=document.getElementById('cap'),caption=capEl?capEl.value.trim().slice(0,300):'';
+      if(draft.kind==='story'){
+        await addDoc(collection(db,'stories'),{uid,handle:me.handle,image:draft.src,filter:draft.filter,createdAt:serverTimestamp()});
+        closeLayer();toast('Story added');
+      }else if(draft.kind==='reel'){
+        const url=await uploadVideo(draft.file,p=>{t.textContent='Uploading '+Math.round(p*100)+'%'});
+        const video=url.replace('/upload/','/upload/f_mp4,vc_h264,q_auto/').replace(/\.\w+$/,'.mp4');
+        const poster=url.replace('/upload/','/upload/so_0,f_jpg,w_540/').replace(/\.\w+$/,'.jpg');
+        await addDoc(collection(db,'reels'),{uid,handle:me.handle,caption,video,poster,likes:[],createdAt:serverTimestamp()});
+        closeLayer();
+        if(view()!=='reels')location.hash='#reels';else render();
+        toast('Reel posted');
+      }else{
+        await addDoc(collection(db,'posts'),{uid,handle:me.handle,caption,image:draft.src,filter:draft.filter,likes:[],createdAt:serverTimestamp()});
+        closeLayer();prof=null;
+        if(view()!=='home')location.hash='#home';else render();
+        window.scrollTo(0,0);toast('Posted');
+      }
+    }
+    else if(a==='editprofile')openEdit();
+    else if(a==='saveprofile'){
+      const name=document.getElementById('ename').value.trim().slice(0,30)||me.name,bio=document.getElementById('ebio').value.trim().slice(0,150);
+      await updateDoc(doc(db,'users',uid),{name,bio});
+      me={...me,name,bio};prof=null;closeLayer();render();toast('Profile updated');
+    }
+    else if(a==='logout'){closeLayer();await signOut(auth)}
+    else if(a==='sendotp')sendOtp();
+    else if(a==='verify')verifyOtp();
+    else if(a==='changenum'){authStep=1;authErr='';render()}
+    else if(a==='createprofile')createProfile();
+  }catch(err){toast('Something went wrong ('+(err.code||err.message||'error')+').');const b=document.getElementById('shareBtn');if(b){b.disabled=false;b.textContent='Share'}}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&layer.firstChild)closeLayer();
+  if(e.key==='Enter'&&e.target.matches('label[for="file"]'))document.getElementById('file').click();
+  if(e.key==='Enter'&&e.target.id==='phone')sendOtp();
+  if(e.key==='Enter'&&e.target.id==='otp')verifyOtp();
+});
+document.addEventListener('change',e=>{if(e.target.id==='file'){const f=e.target.files[0];if(draft.kind==='reel')onVideo(f);else onFile(f)}});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='q'){
+    query_=t.value;const q=query_.trim().toLowerCase();
+    document.getElementById('tiles').innerHTML=tilesHTML(posts.filter(p=>!q||p.handle.includes(q)||(p.caption||'').toLowerCase().includes(q)));
+  }else if(t.closest&&t.closest('.cform')){t.closest('.cform').querySelector('button').disabled=!t.value.trim()}
+});
+document.addEventListener('submit',async e=>{
+  const f=e.target.closest('.cform');if(!f)return;e.preventDefault();
+  const i=f.querySelector('input'),txt=i.value.trim(),id=f.dataset.id;
+  if(!txt)return;
+  try{
+    await addDoc(collection(db,'posts',id,'comments'),{uid,handle:me.handle,text:txt,createdAt:serverTimestamp()});
+    await loadComments(id);
+    const n=document.getElementById('c-'+id);if(n)n.focus();
+  }catch(err){toast('Could not post the comment.')}
+});
+document.addEventListener('pointerup',e=>{
+  const m=e.target.closest('[data-media]');if(!m)return;
+  const id=m.dataset.media,now=Date.now();
+  if(lastTap[id]&&now-lastTap[id]<320){
+    lastTap[id]=0;toggleLike(id,true);
+    document.querySelectorAll(`[data-media="${id}"]`).forEach(el=>{const b=document.createElement('div');b.className='burst';b.innerHTML=svg(P.heart,true,1);el.appendChild(b);setTimeout(()=>b.remove(),800)});
+  }else lastTap[id]=now;
+});
+window.addEventListener('hashchange',()=>{prof=null;profLoading=null;render();window.scrollTo(0,0)});
+render();
+</script>
+</body>
+</html>
